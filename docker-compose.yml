@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"  # Expose frontend on port 5173
+    depends_on:
+      - backend
+    environment:
+      - VITE_BACKEND_URL=http://localhost:3000  # For development, will be handled by nginx proxy
+    networks:
+      - linkedin-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017/linkedin_automation
+      - SECRET_KEY=your-super-secret-key-change-in-production
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+      - LINKEDIN_CLIENT_ID=${LINKEDIN_CLIENT_ID:-your_linkedin_client_id}
+      - LINKEDIN_CLIENT_SECRET=${LINKEDIN_CLIENT_SECRET:-your_linkedin_client_secret}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongodb
+      - redis
+    volumes:
+      - ./backend:/app  # For development, remove this in production
+      - ./backend/.env:/app/.env:ro  # Mount .env file
+    networks:
+      - linkedin-network
+
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    networks:
+      - linkedin-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - linkedin-network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  linkedin-network:
+    driver: bridge
