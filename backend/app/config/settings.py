@@ -3,7 +3,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # MongoDB Configuration
-    MONGODB_URL: str = "mongodb://localhost:27017"
+    MONGODB_URL: str
     MONGODB_DATABASE: str = "linkedin_marketing"
     
     # Security
