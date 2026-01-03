@@ -5,12 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { useAuthContext } from "@/context/AuthContext";
+
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuthContext();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +38,8 @@ export default function Login() {
 
       const data = await response.json();
       
-      // Store the token in localStorage
-      localStorage.setItem("token", data.access_token);
+      // Use the auth hook to store the token
+      login(data.access_token);
       
       toast.success("Logged in successfully", {
         description: "You are now logged in to the application",

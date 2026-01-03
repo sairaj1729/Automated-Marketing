@@ -1,23 +1,68 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
+
+interface AuthState {
+  token: string | null;
+  isAuthenticated: boolean;
+}
 
 export const useAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [authState, setAuthState] = useState<AuthState>(() => {
+    const token = localStorage.getItem('token');
+    return {
+      token,
+      isAuthenticated: !!token,
+    };
+  });
 
+  // Listen for storage changes across tabs
   useEffect(() => {
-    // Check if user has a valid token in localStorage
-    const token = localStorage.getItem("token");
-    
-    if (token) {
-      // In a real implementation, you would verify the token with your backend
-      // For now, we'll just check if it exists
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-    
-    setIsLoading(false);
-  }, []);
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      setAuthState({
+        token,
+        isAuthenticated: !!token,
+      });
+    };
 
-  return { isAuthenticated, isLoading };
+    // Listen for storage events to update auth state across tabs
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically in case storage changes without event
+    const interval = setInterval(() => {
+      const currentToken = localStorage.getItem('token');
+      if (currentToken !== authState.token) {
+        setAuthState({
+          token: currentToken,
+          isAuthenticated: !!currentToken,
+        });
+      }
+    }, 1000); // Check every second
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [authState.token]);
+
+  const login = (token: string) => {
+    localStorage.setItem('token', token);
+    setAuthState({
+      token,
+      isAuthenticated: true,
+    });
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setAuthState({
+      token: null,
+      isAuthenticated: false,
+    });
+  };
+
+  return {
+    ...authState,
+    login,
+    logout,
+  };
 };
