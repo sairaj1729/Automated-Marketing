@@ -61,16 +61,14 @@ async def root():
     Root endpoint - health check
     """
     return {"message": "LinkedIn AutoMarketer API is running"}
-
-@app.get("/health")
+    
+@app.api_route("/health", methods=["GET", "HEAD"], include_in_schema=False)
 async def health_check():
-    """
-    Health check endpoint
-    """
     return {
         "status": "healthy",
         "service": "LinkedIn AutoMarketer API"
     }
+
 
 # Debug endpoint to check token
 @app.get("/debug/token")
