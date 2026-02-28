@@ -64,10 +64,7 @@ async def root():
     
 @app.api_route("/health", methods=["GET", "HEAD"], include_in_schema=False)
 async def health_check():
-    return {
-        "status": "healthy",
-        "service": "LinkedIn AutoMarketer API"
-    }
+    return Response(status_code=200)
 
 
 # Debug endpoint to check token
